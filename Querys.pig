@@ -1,11 +1,25 @@
 -- This script execute the first query of the project LasDivinas from CC5212-1 Otoño
-
+--Debería estar acorde a las carpetas en hdfs , chequear con:
+    --  hdfs dfs -ls /uhadoop/LasDivinas/
+    -- deberías ver artists_sample.csv
+    -- y tracks_sample.csv
 raw_tracks = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/tracks_sample.csv' USING PigStorage('\t') AS (id, name, popularity, duration_ms, explicit,artists, id_artist, release_date, danceability, energy, key, loudness, mode , speechiness, acousticness, instrumentalness, liveness, valence, tempo, time_signature);
--- Later you can change the above file to 'hdfs://cm:9000/uhadoop/shared/imdb/imdb-stars.tsv' to see the full output
 
 
 raw_artists = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/artists_sample.csv' USING PigStorage('\t') AS (id, followers,genres,name,popularity);
+-- Después de que funcione el código para las samples cargar a la carpeta con:
+    --scp -P 220 C:\Users\sofia\Documents\Universidad\SeptimoSemestre\PATOS\Proyecto\artists.csv uhadoop@cm.dcc.uchile.cl:/data/2021/uhadoop/LasDivinas/
+    --scp -P 220 C:\Users\sofia\Documents\Universidad\SeptimoSemestre\PATOS\Proyecto\tracks.csv uhadoop@cm.dcc.uchile.cl:/data/2021/uhadoop/LasDivinas/
+    --Lo anterior debería quedar guardado en la carpeta, revisar con:  
+        -- cd /data/2021/uhadoop/LasDivinas/
+    --LUEGO hacer copyFromLocal
+        -- hdfs dfs -copyFromLocal artists.csv /uhadoop/LasDivinas/
+        -- hdfs dfs -copyFromLocal tracks.csv /uhadoop/LasDivinas/
+    -- y con eso cambiar las partes de LOAD de las lineas 6 y 9
 
+
+
+-- LO DEJO COMO TEMPLATE PARA EL FUTURO--
 
 correctMovies= FILTER raw_roles BY type == 'THEATRICAL_MOVIE';
 
@@ -43,7 +57,7 @@ correction = FOREACH actress GENERATE flatten(group), (suma > 0 ? suma : 0) AS c
 actress_final = ORDER correction BY count DESC;
 
     
-
+-- Corregir esto al momento de guardar
 STORE actors_final INTO 'hdfs://cm:9000/uhadoop2021/group19/actor_topStars/';
 STORE actress_final INTO 'hdfs://cm:9000/uhadoop2021/group19/actress_topStars/';
 --------------------------------------------------------------------------------------
