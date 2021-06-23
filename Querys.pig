@@ -3,10 +3,10 @@
     --  hdfs dfs -ls /uhadoop/LasDivinas/
     -- deberías ver artists_sample.csv
     -- y tracks_sample.csv
-raw_tracks = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/tracks_sample.csv' USING PigStorage('\t') AS (id, name, popularity, duration_ms, explicit,artists, id_artist, release_date, danceability, energy, key, loudness, mode , speechiness, acousticness, instrumentalness, liveness, valence, tempo, time_signature);
+raw_tracks = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/tracks_sample.csv' USING PigStorage('_') AS (id, name, popularity, duration_ms, explicit,artists, id_artist, release_date, danceability, energy, key, loudness, mode , speechiness, acousticness, instrumentalness, liveness, valence, tempo, time_signature);
 
 
-raw_artists = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/artists_sample.csv' USING PigStorage('\t') AS (id, followers,genres,name,popularity);
+raw_artists = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/artists_sample.csv' USING PigStorage('_') AS (id, followers,genres,name,popularity);
 -- Después de que funcione el código para las samples cargar a la carpeta con:
     --scp -P 220 C:\Users\sofia\Documents\Universidad\SeptimoSemestre\PATOS\Proyecto\artists.csv uhadoop@cm.dcc.uchile.cl:/data/2021/uhadoop/LasDivinas/
     --scp -P 220 C:\Users\sofia\Documents\Universidad\SeptimoSemestre\PATOS\Proyecto\tracks.csv uhadoop@cm.dcc.uchile.cl:/data/2021/uhadoop/LasDivinas/
