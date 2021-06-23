@@ -24,14 +24,15 @@ raw_artists = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/artists_sample.csv' US
     -- y con eso cambiar las partes de LOAD de las lineas 6 y 9
 
 
+-- llegará un artista con x características
 
+--se filtra por artistas con el mismo género musical
+filterByGenres= FILTER raw_artists BY genres=='' ;
 
---se filtra por artistas mayores al promedio de popularidad
-filterByPopularity= FILTER raw_artists BY popularity >= 9.42 ;
-moreThanAVGArtist= FOREACH filterByPopularity GENERATE id;
---artistList= GROUP moreThanAVGArtist ALL;
--- Acá cambiamos explicit en función de la canción seleccionada (0 o 1)
-explicitSongs= FILTER raw_tracks By explicit==1  ;
+tracksGroupByArtist= GROUP raw_tracks By artists;
+tracksGroupByArtistANDAvg=
+moreThanAVGArtist= FOREACH filterByGenres GENERATE id , AVG(danceability), AVG(energy), AVG(instrumentalness), AVG(liveness);
+
 
 --Acá la idea es hacer un join pero tengo problemas por el bag en donde se guarda id_artists
 --HALP
