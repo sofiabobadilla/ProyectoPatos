@@ -1,10 +1,11 @@
--- This script execute the first query of the project LasDivinas from CC5212-1 Otoño
---Debería estar acorde a las carpetas en hdfs , chequear con:
+-- This script loads our datasets into pig latin's variables
+-- It should be inside in our Hadoop server. You can check using the following commands.
     --  hdfs dfs -ls /uhadoop/LasDivinas/
-    -- deberías ver artists_sample.csv
-    -- y tracks_sample.csv
--- This script execute the first query of the project LasDivinas from CC5212-1 Oto�o
+    -- You should be able to see artists_sample.csv
+    -- and tracks_sample.csv
 
+-- This script execute the first query of the project LasDivinas from CC5212-1 Oto�o
+-- enter and cache our files in our directory:
 -- hdfs dfs -ls /uhadoop/LasDivinas/
 raw_tracks = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/tracks_sample_100000.csv'
                          USING PigStorage('_')
@@ -42,28 +43,27 @@ raw_artists = LOAD 'hdfs://cm:9000/uhadoop2021/LasDivinas/artists_sample_100000.
                                         popularity:int
                                 );
 
--- Después de que funcione el código para las samples cargar a la carpeta con:
+-- Once the code has loaded the samples, upload other folders with: (Path may change. This is Sofia's path)
+-- The important path is from artists.csv and tracks.csv
     --scp -P 220 C:\Users\sofia\Documents\Universidad\SeptimoSemestre\PATOS\Proyecto\artists.csv uhadoop@cm.dcc.uchile.cl:/data/2021/uhadoop/LasDivinas/
     --scp -P 220 C:\Users\sofia\Documents\Universidad\SeptimoSemestre\PATOS\Proyecto\tracks.csv uhadoop@cm.dcc.uchile.cl:/data/2021/uhadoop/LasDivinas/
-    --Lo anterior debería quedar guardado en la carpeta, revisar con:  
+    -- This should be now in the content of the folder, check with:  
         -- cd /data/2021/uhadoop/LasDivinas/
-    --LUEGO hacer copyFromLocal
+    -- Use copyFromLocal to send data from normal Operative System to Hadoop multidisk partition:
         -- hdfs dfs -copyFromLocal artists.csv /uhadoop2021/LasDivinas/
         -- hdfs dfs -copyFromLocal tracks.csv /uhadoop2021/LasDivinas/
-    -- y con eso cambiar las partes de LOAD de las lineas 6 y 9
 
 
---Separar bags de artists en filas distintas
-
---dump flat_tracks;
-
-
---energy, speechiness, acousticness, instrumentalness,  liveness, valence 
---se filtra por artistas mayores al promedio de popularidad
+-- Some values we are interested in
+-- energy, speechiness, acousticness, instrumentalness,  liveness, valence 
+-- We filter by artist whose popularity is more than the average
+-- filterByPopularity is just a filter, we need to turn it into a Apache Pig's Bag ( some kind of array or datatable )
 filterByPopularity= FILTER raw_artists BY popularity < 9.42 ;
 moreThanAVGArtist= FOREACH filterByPopularity GENERATE id as artist_id, name as artist_name;
 
+-- we check our data by looking at one song, filtering by id
 interestSongRaw= FILTER raw_tracks BY id=='5t4qhdEnUoVnTSZF1TSfCl';
+-- We need to rename columns for it to work fine
 interestSong= FOREACH interestSongRaw GENERATE  id, 
 danceability AS danceability2,
 energy AS energy2, 
@@ -72,10 +72,14 @@ acousticness AS acousticness2,
 instrumentalness AS instrumentalness2,  
 liveness AS liveness2, 
 valence AS valence2;
+
+-- Print more Than AVG artists
 --dump moreThanAVGArtist
--- Acá cambiamos explicit en función de la canción seleccionada (0 o 1)
+
+
+-- Consider only explicit songs
 explicitSongs= FILTER raw_tracks By explicit==0  ;
-flat_tracks = foreach raw_tracks generate name AS song_name, flatten(id_artist) as id_artist,
+flat_tracks = FOREACH raw_tracks GENERATE name AS song_name, flatten(id_artist) as id_artist,
 danceability, 
 energy, 
 speechiness, 
@@ -83,9 +87,11 @@ acousticness,
 instrumentalness,  
 liveness, 
 valence ;
+
+-- We can show these values by writing the following line
 --dump flat_tracks
---Acá la idea es hacer un join pero tengo problemas por el bag en donde se guarda id_artists
---HALP
+
+-- Performing a join between tracks and artist, considering tracks by popular artists
 explicitAndPopularityJOIN = JOIN flat_tracks BY id_artist, moreThanAVGArtist by artist_id;
 explicitAndPopularity= FOREACH explicitAndPopularityJOIN GENERATE song_name, artist_name,
 danceability,
@@ -103,5 +109,5 @@ Final= CROSS explicitAndPopularity, interestSong;
 --dump explicitAndPopularityCond
 
 
-
+-- Save our result
 STORE Final INTO 'hdfs://cm:9000/uhadoop2021/LasDivinas/explicitandpopularity/';

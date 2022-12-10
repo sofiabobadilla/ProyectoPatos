@@ -11,16 +11,17 @@ import org.apache.pig.data.TupleFactory;
 
 
 /*
-Como ejecutar:
+Instructions
 MAPREDUCE: Run a native Hadoop .jar
+Transform that file into a .jar
+Executing that .jar file, using Apache pig's console, write:
 
-
-Transformar ese archivo a un .jar
-Luego, en pig, escribir:
 register myudfs.jar;
 A = LOAD 'student_data' AS (t1:tuple(danceability:float,energy:float,speechiness:float), t2:tuple(danceability:float,energy:float,speechiness:float));
 B = FOREACH A GENERATE myudfs.Similarity(A);
 DUMP B;
+
+This will register register the following Java function into Apache Pig function
 */
 
 public class Similarity extends EvalFunc<Double>{
